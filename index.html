@@ -227,8 +227,9 @@
             zoom: 3,
             layers: [
                 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                    attribution: 'NASA, Esri',
-                    maxZoom: 18
+    attribution: 'NASA GIBS',
+    maxZoom: 18
+}).addTo(map);
                 })
             ]
         });
