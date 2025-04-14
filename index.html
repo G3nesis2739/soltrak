@@ -1,366 +1,120 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SolTrak- Temporal Navigation System</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <!-- Existing head content remains the same -->
     <style>
-        :root {
-            --nav-bg: linear-gradient(to right, #1a237e, #0d47a1);
-            --time-popup-bg: rgba(0,0,0,0.9);
-            --political-color: #4CAF50;
-            --solar-color: #FFC107;
-            --kemet-color: #9C27B0;
-            --utc-color: #E91E63;
-        }
-
-        body { 
-            margin: 0; 
-            font-family: 'Arial', sans-serif;
-            background: #0a1929;
-            color: white;
-        }
-
-        .nav-container {
-            background: var(--nav-bg);
-            padding: 1rem;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-
-        .nav-link {
-            color: white;
-            text-decoration: none;
-            margin: 0 1.5rem;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-link:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        .page-section {
-            display: none;
-            padding: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .active-page {
-            display: block;
-        }
-
-        #map { 
-            height: 80vh;
-            border-radius: 10px;
-            margin: 1rem;
-        }
-
-        .time-card {
-            background: rgba(0,0,0,0.8);
-            padding: 1.5rem;
-            border-radius: 10px;
-            margin: 1rem 0;
-            border: 1px solid #00f3ff;
-        }
-
-        .location-btn {
+        /* Add these new styles */
+        .map-controls {
             position: absolute;
+            top: 100px;
             right: 20px;
-            bottom: 30px;
             z-index: 1000;
-            background: #0d47a1;
+            background: rgba(0,0,0,0.8);
+            padding: 1rem;
+            border-radius: 8px;
             color: white;
+            width: 300px;
+        }
+        
+        .search-box {
+            margin-bottom: 1rem;
+        }
+        
+        #search-input {
+            width: calc(100% - 90px);
+            padding: 8px;
+            border-radius: 4px;
             border: none;
-            padding: 15px;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-        }
-
-        .location-btn:hover {
-            background: #1565c0;
-            transform: scale(1.1);
-        }
-
-        .time-popup {
-            background: var(--time-popup-bg);
+            background: #333;
             color: white;
-            padding: 20px;
-            border-radius: 12px;
-            border: 2px solid #00f3ff;
-            box-shadow: 0 0 20px rgba(0,243,255,0.3);
-            min-width: 300px;
         }
-
-        .time-entry {
-            margin: 12px 0;
-            padding: 10px;
-            border-left: 4px solid;
-            font-family: monospace;
+        
+        #search-button {
+            width: 80px;
+            padding: 8px;
+            background: #0d47a1;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
         }
-
-        .coordinates {
-            font-size: 1.2em;
-            color: #00f3ff;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #00f3ff;
-            padding-bottom: 10px;
+        
+        .time-info {
+            border-top: 1px solid #00f3ff;
+            padding-top: 1rem;
         }
-
-        .kemet-info {
-            margin-top: 15px;
-            padding: 10px;
-            background: rgba(255,215,0,0.1);
-            border-radius: 5px;
-            font-size: 0.9em;
+        
+        .time-row {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
-    <div class="nav-container">
-        <nav>
-            <a href="#map" class="nav-link" onclick="showPage('map')">Solar Map</a>
-            <a href="#history" class="nav-link" onclick="showPage('history')">Time History</a>
-            <a href="#sailor" class="nav-link" onclick="showPage('sailor')">Sailor's Tools</a>
-            <a href="#about" class="nav-link" onclick="showPage('about')">About</a>
-            <a href="#contact" class="nav-link" onclick="showPage('contact')">Contact</a>
-        </nav>
-    </div>
-
-    <!-- Map Page -->
-    <div id="map" class="page-section active-page"></div>
-
-    <!-- History Page -->
-    <div id="history" class="page-section">
-        <div class="time-card">
-            <h2>Temporal Evolution</h2>
-            <div class="history-content">
-                <h3>Key Chronological Milestones</h3>
-                <ul>
-                    <li>🌍 1884 - International Meridian Conference</li>
-                    <li>⏳ 1929 - Universal Time Standardization</li>
-                    <li>🔬 1967 - Atomic Time Adoption</li>
-                    <li>🛰 1972 - Leap Second Implementation</li>
-                </ul>
-                
-                <h3>Solar vs Political Time</h3>
-                <p>Solar time follows the Sun's apparent position, while political time zones...</p>
-                
-                <div class="kemet-info">
-                    <h4>𓁡 Kemet Time System</h4>
-                    <p>Ancient Egyptian temporal measurement where:</p>
-                    <ul>
-                        <li>Day begins at dawn (6AM solar time)</li>
-                        <li>12 daylight hours & 12 night hours</li>
-                        <li>Seasonally adjusted hours</li>
-                    </ul>
-                </div>
-            </div>
+    <!-- Add search box and info panel -->
+    <div class="map-controls">
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Search location...">
+            <button id="search-button" onclick="searchLocation()">Search</button>
+        </div>
+        <div class="time-info">
+            <div class="time-row" id="current-location"></div>
+            <div class="time-row" id="live-solar-time"></div>
+            <div class="time-row" id="live-political-time"></div>
+            <div class="time-row" id="live-kemet-time"></div>
         </div>
     </div>
 
-    <!-- Sailor's Tools Page -->
-    <div id="sailor" class="page-section">
-        <div class="time-card">
-            <h2>⛵ Nautical Navigator</h2>
-            <div class="sailor-tools">
-                <div class="tool">
-                    <h3>Sun Calculator</h3>
-                    <input type="date" id="sailor-date">
-                    <button onclick="calculateSunTimes()">Calculate</button>
-                    <div id="sun-results"></div>
-                </div>
-                <div class="tool">
-                    <h3>Tidal Information</h3>
-                    <div id="tide-data">Coming Soon</div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Existing body content remains the same -->
 
-    <!-- About Page -->
-    <div id="about" class="page-section">
-        <div class="time-card">
-            <h2>About SolTrak</h2>
-            <p>Integrated temporal navigation system combining ancient wisdom with modern technology.</p>
-            <h3>Core Components</h3>
-            <ul>
-                <li>🌐 Leaflet.js Mapping</li>
-                <li>🛰 NASA GIBS Satellite Imagery</li>
-                <li>⏲ TimezoneDB API Integration</li>
-                <li>☀️ Solar Calculation Engine</li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Contact Page -->
-    <div id="contact" class="page-section">
-        <div class="time-card">
-            <h2>Contact Navigators</h2>
-            <form class="contact-form">
-                <input type="text" placeholder="Name" required>
-                <input type="email" placeholder="Email" required>
-                <textarea rows="5" placeholder="Message" required></textarea>
-                <button type="submit">Send Message</button>
-            </form>
-            <div class="emergency-contact">
-                <h3>⛑ Emergency Assistance</h3>
-                <p>📞 Global Maritime: +1-555-NAV-HELP</p>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        const TIMEZONEDB_API_KEY = 'API_KEY'; // Get from timezonedb.com
+        // Add these new functions
+        let currentPosition = { lat: 0, lng: 0 };
 
-        // Map Initialization
-        const map = L.map('map', {
-            center: [0, 0],
-            zoom: 3,
-            layers: [
-                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'NASA GIBS',
-    maxZoom: 18
-}).addTo(map);
-                })
-            ]
-        });
-
-        // Location Button
-        const locateBtn = L.control({position: 'bottomright'});
-        locateBtn.onAdd = () => {
-            const div = L.DomUtil.create('div', 'location-btn');
-            div.innerHTML = '📍';
-            div.title = 'Locate Me';
-            return div;
-        };
-        locateBtn.addTo(map);
-
-        // Page Navigation
-        function showPage(pageId) {
-            document.querySelectorAll('.page-section').forEach(page => {
-                page.style.display = 'none';
-            });
-            document.getElementById(pageId).style.display = 'block';
-            if(pageId === 'map') map.invalidateSize();
-        }
-
-        // Time Calculations
-        async function calculateTimes(lat, lng) {
+        async function searchLocation() {
+            const query = document.getElementById('search-input').value;
             try {
                 const response = await fetch(
-                    `https://api.timezonedb.com/v2.1/get-time-zone?key=${TIMEZONEDB_API_KEY}&format=json&by=position&lat=${lat}&lng=${lng}`
+                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
                 );
                 const data = await response.json();
-
-                const politicalTime = new Date(data.formatted).toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                });
-
-                const solarOffset = lng * 4 * 60 * 1000;
-                const solarDate = new Date(new Date(data.formatted).getTime() + solarOffset);
-                const solarTime = solarDate.toISOString().substr(11, 5);
-
-                const kemetDate = new Date(solarDate);
-                kemetDate.setHours(kemetDate.getHours() - 6);
-                const kemetTime = kemetDate.toISOString().substr(11, 5);
-
-                return {
-                    political: politicalTime,
-                    solar: solarTime,
-                    kemet: kemetTime,
-                    utc: new Date(data.timestamp * 1000).toISOString().substr(11, 5),
-                    zoneName: data.zoneName
-                };
+                if (data.length > 0) {
+                    const { lat, lon } = data[0];
+                    currentPosition = { lat: parseFloat(lat), lng: parseFloat(lon) };
+                    map.flyTo([lat, lon], 13);
+                    updateTimeDisplays();
+                }
             } catch (error) {
-                console.error('Time calculation error:', error);
-                return null;
+                console.error('Search error:', error);
             }
         }
 
-        // Map Interactions
-        map.on('click', async (e) => {
-            const lat = e.latlng.lat.toFixed(4);
-            const lng = e.latlng.lng.toFixed(4);
+        async function updateTimeDisplays() {
+            const times = await calculateTimes(currentPosition.lat, currentPosition.lng);
+            document.getElementById('current-location').innerHTML = 
+                `📍 ${currentPosition.lat.toFixed(4)}°, ${currentPosition.lng.toFixed(4)}°`;
             
-            const times = await calculateTimes(lat, lng);
-            if(!times) return;
-
-            L.popup()
-                .setLatLng(e.latlng)
-                .setContent(`
-                    <div class="time-popup">
-                        <div class="coordinates">🌍 ${lat}°, ${lng}°</div>
-                        <div class="time-entry" style="border-color: ${var(--political-color)}">
-                            🏛 Political: ${times.political} (${times.zoneName})
-                        </div>
-                        <div class="time-entry" style="border-color: ${var(--solar-color)}">
-                            ☀️ Solar: ${times.solar}
-                        </div>
-                        <div class="time-entry" style="border-color: ${var(--kemet-color)}">
-                            𓁡 Kemet: ${times.kemet}
-                        </div>
-                        <div class="time-entry" style="border-color: ${var(--utc-color)}">
-                            🌐 UTC: ${times.utc}
-                        </div>
-                        <div class="kemet-info">
-                            Kemet Time: Ancient system starting day at 6AM solar time
-                        </div>
-                    </div>
-                `)
-                .openOn(map);
-        });
-
-        // Location Button Handler
-        L.DomEvent.on(locateBtn.getContainer(), 'click', async () => {
-            try {
-                const position = await new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject);
-                });
-                
-                const { latitude, longitude } = position.coords;
-                map.flyTo([latitude, longitude], 13);
-                map.fire('click', { latlng: [latitude, longitude] });
-                
-            } catch (error) {
-                alert('Location access denied: ' + error.message);
-            }
-        });
-
-        // Sailor Tools
-        async function calculateSunTimes() {
-            const date = document.getElementById('sailor-date').value;
-            try {
-                const position = await new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject);
-                });
-                
-                const response = await fetch(
-                    `https://api.sunrise-sunset.org/json?lat=${position.coords.latitude}&lng=${position.coords.longitude}&date=${date}&formatted=0`
-                );
-                
-                const data = await response.json();
-                const results = data.results;
-                
-                document.getElementById('sun-results').innerHTML = `
-                    <p>🌅 Sunrise: ${new Date(results.sunrise).toLocaleTimeString()}</p>
-                    <p>🌇 Sunset: ${new Date(results.sunset).toLocaleTimeString()}</p>
-                    <p>☀️ Day Length: ${results.day_length}</p>
-                `;
-            } catch (error) {
-                alert('Error calculating sun times: ' + error.message);
-            }
+            document.getElementById('live-solar-time').innerHTML = 
+                `☀️ Solar Time: ${times.solar}`;
+            
+            document.getElementById('live-political-time').innerHTML = 
+                `🏛 Political Time: ${times.political} (${times.zoneName})`;
+            
+            document.getElementById('live-kemet-time').innerHTML = 
+                `𓁡 Kemet Time: ${times.kemet}`;
         }
+
+        // Modify map click handler
+        map.on('click', async (e) => {
+            currentPosition = e.latlng;
+            updateTimeDisplays();
+            // Existing popup code...
+        });
+
+        // Add periodic update
+        setInterval(updateTimeDisplays, 1000);
     </script>
 </body>
 </html>
